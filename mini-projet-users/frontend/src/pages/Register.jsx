@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const API_URL = "http://localhost:8000";
+import { register } from "../api/client";
 
 export default function Register({ onBack }) {
   const [username, setUsername] = useState("");
@@ -8,26 +7,18 @@ export default function Register({ onBack }) {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("user");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
+    setError("");
 
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        username,
-        email,
-        password,
-        role,
-      }),
-    });
-
-    if (response.ok) {
-      setMessage("Compte créé avec succès");
-    } else {
-      setMessage("Erreur lors de l’inscription");
+    try {
+      await register(username, email, password, role);
+      setMessage("Compte créé avec succès. Vous pouvez vous connecter.");
+    } catch (err) {
+      setError(err.message);
     }
   }
 
@@ -39,12 +30,15 @@ export default function Register({ onBack }) {
         placeholder="Nom d’utilisateur"
         value={username}
         onChange={(e) => setUsername(e.target.value)}
+        required
       />
 
       <input
+        type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
       />
 
       <input
@@ -52,6 +46,7 @@ export default function Register({ onBack }) {
         placeholder="Mot de passe"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
 
       <select value={role} onChange={(e) => setRole(e.target.value)}>
@@ -61,7 +56,8 @@ export default function Register({ onBack }) {
 
       <button type="submit">Créer un compte</button>
 
-      {message && <p>{message}</p>}
+      {message && <p style={{ color: "green" }}>{message}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
       <button type="button" className="logout" onClick={onBack}>
         Retour à la connexion
